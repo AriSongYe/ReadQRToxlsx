@@ -55,7 +55,8 @@ class MyApp:
 
 class DataWindow():
     categoryArr = ["일반QR","신학생QR","선교사QR","개척교회QR","북한QR"]
-
+    casheCoordi = ""
+    name = ""
     def __init__(self, master, ExcelManager):
 
         self.top = tk.Toplevel(master)
@@ -71,6 +72,11 @@ class DataWindow():
         btn_read_qr = tk.Button(self.top, text="Read QR", command=self.read_qr)
         btn_read_qr.pack(pady=10)
 
+
+        self.entry_fix = tk.Entry(self.top)
+        self.entry_fix.pack(pady=10)
+        self.entry_fix.bind('<Return>', self.fixMoney)
+        
         self.result_label = tk.Label(self.top, text="")
         self.result_label.pack(pady=10)
 
@@ -79,6 +85,20 @@ class DataWindow():
 
     def close_window(self):
         self.top.destroy()
+
+    def fixMoney(self, event=None):
+        if self.casheCoordi != "":
+            fixData = self.entry_fix.get()
+            self.ExcelManager.dataSheet[self.casheCoordi] = int(fixData)
+            self.result_label.destroy()
+            self.result_label = tk.Label(self.top, text=f"이름: {self.name}\n 수정된 작정금액:  {self.ExcelManager.dataSheet[self.casheCoordi].value}")
+            self.result_label.pack(pady=10)
+        else:
+            messagebox.showinfo("Error: There is no Cashe 해당하는 QR Data가 존재하지 않습니다!")
+
+
+        # 엔트리 Reset
+        self.entry_fix.delete(0, 'end')
 
     def read_qr(self,event=None):
         # Entry에서 QR 코드를 가져오기
@@ -103,8 +123,8 @@ class DataWindow():
         print(personId)
         # find Name
         nameCoordi =  self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 7 - category)
-        name = self.ExcelManager.QRsheet[nameCoordi].value
-        print(name)
+        self.name = self.ExcelManager.QRsheet[nameCoordi].value
+        print(self.name)
         # Categorized 작정헌금 금액
         categorizedCoordi = self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 16)
         decidedMoney = self.ExcelManager.QRsheet[categorizedCoordi].value
@@ -123,18 +143,21 @@ class DataWindow():
             print("date coordi" + dateCoordi.coordinate)
             dateCategorizedCoordi = self.ExcelManager.nth_column_coordinate(dateCoordi.coordinate, category - 1)
             print("categorized " + dateCategorizedCoordi)
-
-            preDataIdCoordi = self.ExcelManager.findCoordinate_in_column(7, personId, self.ExcelManager.dataSheet, 2300)
+            if personId != None:
+                preDataIdCoordi = self.ExcelManager.findCoordinate_in_column(7, personId, self.ExcelManager.dataSheet, 2300)
+            else:
+                preDataIdCoordi = self.ExcelManager.findCoordinate_in_column(1 + category, qrData, self.ExcelManager.dataSheet, 2300)
             dataRowCoordi = int(self.ExcelManager.extract_numeric_part(preDataIdCoordi.coordinate))        
             dateIdCoordi = self.ExcelManager.nth_row_coordinate(dateCategorizedCoordi, dataRowCoordi  - 1)
             print("rowcategorized " + dateIdCoordi)
             tempCheck = self.ExcelManager.dataSheet[dateIdCoordi] = decidedMoney
+            self.casheCoordi = dateIdCoordi
             print("Check value cell data is " + str(tempCheck))
         else:
             messagebox.showinfo("Error: Empty Cell", "작정금액이 없습니다")
 
         self.result_label.destroy()
-        self.result_label = tk.Label(self.top, text=f"이름: {name}\n작정항목: {DataWindow.categoryArr[category - 1]}\n작정금액:  {decidedMoney} \n날짜: {date}")
+        self.result_label = tk.Label(self.top, text=f"이름: {self.name}\n작정항목: {DataWindow.categoryArr[category - 1]}\n작정금액:  {decidedMoney} \n날짜: {date}")
         self.result_label.pack(pady=10)
 
         # 엔트리 Reset
