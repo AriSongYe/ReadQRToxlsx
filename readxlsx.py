@@ -1,5 +1,7 @@
 import openpyxl
 from openpyxl_image_loader import SheetImageLoader
+from openpyxl.styles import NamedStyle
+
 import re
 
 class ExcelManager:
@@ -10,6 +12,7 @@ class ExcelManager:
         # Sheet 지정
         self.QRsheet = self.workbook["QR인쇄용"]
         self.dataSheet = self.workbook["수정본"]
+        number_style = NamedStyle(name='number_style', number_format='0,000')
 
     def setSheet(self, sheetName):
         self.sheet = self.workbook[sheetName]

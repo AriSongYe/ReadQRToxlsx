@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from openpyxl import load_workbook
+from openpyxl.styles import NamedStyle
 from readxlsx import ExcelManager
 from DateFucntion import get_current_sunday
 
@@ -57,6 +58,8 @@ class DataWindow():
     categoryArr = ["일반QR","신학생QR","선교사QR","개척교회QR","북한QR"]
     casheCoordi = ""
     name = ""
+    number_style = NamedStyle(name='number_style', number_format='0,000')
+
     def __init__(self, master, ExcelManager):
 
         self.top = tk.Toplevel(master)
@@ -95,6 +98,7 @@ class DataWindow():
             self.result_label.pack(pady=10)
         else:
             messagebox.showinfo("Error: There is no Cashe 해당하는 QR Data가 존재하지 않습니다!")
+        self.entry_qr.focus()
 
 
         # 엔트리 Reset
@@ -128,6 +132,8 @@ class DataWindow():
         # Categorized 작정헌금 금액
         categorizedCoordi = self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 16)
         decidedMoney = self.ExcelManager.QRsheet[categorizedCoordi].value
+        #decidedMoney = format(tempMoney, ",")
+
 
         date = None
         print(decidedMoney)
@@ -151,6 +157,10 @@ class DataWindow():
             dateIdCoordi = self.ExcelManager.nth_row_coordinate(dateCategorizedCoordi, dataRowCoordi  - 1)
             print("rowcategorized " + dateIdCoordi)
             tempCheck = self.ExcelManager.dataSheet[dateIdCoordi] = decidedMoney
+
+            # Change the style of the cell
+            self.ExcelManager.dataSheet[dateIdCoordi].style = self.number_style
+            
             self.casheCoordi = dateIdCoordi
             print("Check value cell data is " + str(tempCheck))
         else:
