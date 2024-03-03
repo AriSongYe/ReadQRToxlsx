@@ -105,34 +105,21 @@ class DataWindow():
         # Entry에서 QR 코드를 가져오기
         paddingValue = 2
         qrData = self.entry_qr.get()
-
-        # QR Data -> Category
-        parsedData = self.parsingQR(qrData)
-        category = int(parsedData[0])
-        
-        # QR Data -> Find person id
-        findPersonidCoordi = self.ExcelManager.findCoordinate_in_column(category + 1, qrData, self.ExcelManager.QRsheet, 2300)
-        
-        # QR Data 예외처리
-        if findPersonidCoordi is None: 
-            messagebox.showinfo("Error: There is no data", "{qrData} 해당하는 QR Data가 존재하지 않습니다!")
+        Data = self.parsingQR(qrData)
+        category = int(Data[0])
+        checkEmpty = self.ExcelManager.findCoordinate_in_column(category, qrData, self.ExcelManager.dataSheet, 2300)
+        if checkEmpty is None: 
+            messagebox.showinfo("Error: There is no data", "{qrData} 해당하는 24년도 작정 Data가 존재하지 않습니다!")
             return
-        
-        personIdCoordi =  self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 6 - category)
-        personId = self.ExcelManager.QRsheet[personIdCoordi].value
-
-        print(personId)
-        # find Name
-        nameCoordi =  self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 7 - category)
-        self.name = self.ExcelManager.QRsheet[nameCoordi].value
-        print(self.name)
-        # Categorized 작정헌금 금액
-        categorizedCoordi = self.ExcelManager.nth_column_coordinate(findPersonidCoordi.coordinate, 16)
-        decidedMoney = self.ExcelManager.QRsheet[categorizedCoordi].value
-        #decidedMoney = format(tempMoney, ",")
+        row = checkEmpty.row        
+        self.name = self.ExcelManager.dataSheet["G"+str(row)].value
+        # QR Data 예외처리
 
 
-        date = None
+        decidedCell = self.ExcelManager.findCoordinate(1, "2024년 작정금액", self.ExcelManager.dataSheet)
+        categorizedCell = self.ExcelManager.nth_column_coordinate(decidedCell.coordinate, category - 1)
+        cell = self.ExcelManager.nth_row_coordinate(categorizedCell, row - 1)
+        decidedMoney = self.ExcelManager.dataSheet[cell].value
         print(decidedMoney)
         
         # Write decided Money
@@ -143,20 +130,12 @@ class DataWindow():
             if dateCoordi == None:
                 messagebox.showinfo("Error: Date Cell does not exist", "해당하는 날짜 셀이 존재하지 않습니다!")
                 return 
-            print("date coordi" + dateCoordi.coordinate)
             dateCategorizedCoordi = self.ExcelManager.nth_column_coordinate(dateCoordi.coordinate, category - 1)
-            print("categorized " + dateCategorizedCoordi)
-            if personId != None:
-                preDataIdCoordi = self.ExcelManager.findCoordinate_in_column(7, personId, self.ExcelManager.dataSheet, 2300)
-            else:
-                preDataIdCoordi = self.ExcelManager.findCoordinate_in_column(1 + category, qrData, self.ExcelManager.dataSheet, 2300)
-            dataRowCoordi = int(self.ExcelManager.extract_numeric_part(preDataIdCoordi.coordinate))        
-            dateIdCoordi = self.ExcelManager.nth_row_coordinate(dateCategorizedCoordi, dataRowCoordi  - 1)
-            print("rowcategorized " + dateIdCoordi)
-            tempCheck = self.ExcelManager.dataSheet[dateIdCoordi] = decidedMoney
+            dateCell = self.ExcelManager.nth_row_coordinate(dateCategorizedCoordi, row - 1)
+            tempCheck = self.ExcelManager.dataSheet[dateCell] = decidedMoney
             
             # Make a casheCoordi
-            self.casheCoordi = dateIdCoordi
+            self.casheCoordi = dateCell
             print("Check value cell data is " + str(tempCheck))
         else:
             messagebox.showinfo("Error: Empty Cell", "작정금액이 없습니다")

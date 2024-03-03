@@ -10,8 +10,7 @@ class ExcelManager:
         self.workbook = openpyxl.load_workbook(filepath)
         self.filepath = filepath
         # Sheet 지정
-        self.QRsheet = self.workbook["QR인쇄용"]
-        self.dataSheet = self.workbook["수정본"]
+        self.dataSheet = self.workbook["OFF선교헌금 "]
         number_style = NamedStyle(name='number_style', number_format='0,000')
 
     def setSheet(self, sheetName):
@@ -36,6 +35,7 @@ class ExcelManager:
             break  # 값 찾았으므로 더 이상 반복할 필요 없음
         else:
             print(f"찾을 값 '{target_value}'은(는) 행 {target_row}에서 발견되지 않았습니다.")
+            return None
 
     def findCoordinate_in_column(self, target_column, target_value, sheet, max_rows=None):
         i = 0
@@ -50,6 +50,7 @@ class ExcelManager:
             break  # 값 찾았으므로 더 이상 반복할 필요 없음
         else:
             print(f"찾을 값 '{target_value}'은(는) 행 {target_column}에서 발견되지 않았습니다.")
+            return None
 
     def nth_row_coordinate(self, cell_coordinate, n):
         # 정규표현식을 사용하여 열과 행을 분리합니다
