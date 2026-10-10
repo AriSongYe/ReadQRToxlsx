@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.py[cod]
+.backups/
+.qr-save-*.xlsx
+.DS_Store
+.pytest_cache/
+.venv-build/
+build/
+dist/
+source-smoke-report.json
+
+# Local donor records and reference-only regression checks
+/*.xlsx
+/*.xls
+/*.jpeg
+/*.jpg
+tests/test_local_reference.py

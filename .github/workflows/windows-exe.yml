@@ -1,0 +1,42 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'codex/windows-exe-*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-build.txt
+      - name: Install build dependencies
+        run: python -m pip install -r requirements-build.txt
+      - name: Verify source with generated data
+        run: python main.py --smoke-test source-smoke-report.json
+      - name: Build standalone executable
+        run: python scripts/build_windows.py
+      - name: Verify actual executable
+        run: python scripts/verify_windows.py
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReadQRToxlsx-Windows-x64
+          path: |
+            dist/ReadQRToxlsx.exe
+            dist/smoke-report.json
+          if-no-files-found: error
+          retention-days: 14
