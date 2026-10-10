@@ -1,33 +1,30 @@
-from UILayout import MyApp
+"""Desktop entry point; safe to import in tests and packaging tools."""
+import argparse
+from pathlib import Path
 import tkinter as tk
-from readxlsx import ExcelManager
-from tkinter import messagebox
-import asyncio
-
-async def save_and_close():
-    # save 작업 수행
-    MyApp.ExcelManager.workbook.save(MyApp.ExcelManager.filepath)
-    messagebox.showinfo("Success Save and Close", "성공적으로 데이터를 저장했습니다!")
-    print("Success Sva and Close!")
-    # close 작업 수행
-    MyApp.ExcelManager.close()
-    app.root.destroy()
+from UILayout import MyApp
 
 
+def main():
+    parser = argparse.ArgumentParser(description="서울반석교회 선교헌금 QR 입력")
+    parser.add_argument("workbook", nargs="?", help="실행 시 열 .xlsx 파일")
+    parser.add_argument("--smoke-test", metavar="REPORT", help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if args.smoke_test:
+        from packaging_smoke import run
+        return run(args.smoke_test)
+    root = tk.Tk()
+    icon = Path(__file__).with_name("icon.ico")
+    if icon.exists():
+        try:
+            root.iconbitmap(str(icon))
+        except tk.TclError:
+            pass  # macOS/Linux do not necessarily support Windows ICO icons.
+    app = MyApp(root)
+    if args.workbook:
+        root.after(100, lambda: app.open_file(args.workbook))
+    root.mainloop()
 
-def on_closing():
-    if app.ExcelManager == 0:
-        app.root.destroy()
-    else:
-        asyncio.run(save_and_close())
 
-
-# 애플리케이션 실행
-root = tk.Tk()
-app = MyApp(root)
-root.iconbitmap("icon.ico")
-
-# Auto Save
-root.protocol("WM_DELETE_WINDOW", on_closing)
-
-root.mainloop()
+if __name__ == "__main__":
+    raise SystemExit(main())
