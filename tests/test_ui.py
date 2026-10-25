@@ -60,6 +60,9 @@ class UITests(unittest.TestCase):
         self.root.update_idletasks()
         main_buttons = [widget.cget("text") for widget in self.root.pack_slaves() if isinstance(widget, tk.Button)]
         self.assertEqual(main_buttons, ["데이터 전송", "엑셀 파일 경로 수정", "나가기"])
+        for bar, _, _, _ in self.app.menus.values():
+            self.assertFalse(int(bar.cget("tearoff")))
+            self.assertEqual(bar.type(0), "cascade")
         self.assertEqual(self.root.wm_geometry().split("+")[0], "500x400")
         self.assertEqual(self.window.top.wm_geometry().split("+")[0], "300x400")
         self.assertEqual(self.window.top.pack_slaves(), [self.window.entry_qr, self.window.read_button, self.window.entry_fix, self.window.result_label, self.window.save_button])

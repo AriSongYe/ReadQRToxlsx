@@ -69,7 +69,7 @@ class MyApp:
         window.bind("<Command-s>", self.save_data)
 
     def _add_menu(self, window, data_window=None):
-        bar = tk.Menu(window)
+        bar = tk.Menu(window, tearoff=False)
         settings = tk.Menu(bar, tearoff=False)
         sheets = tk.Menu(settings, tearoff=False)
         years = tk.Menu(settings, tearoff=False)
