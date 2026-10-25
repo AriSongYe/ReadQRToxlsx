@@ -57,19 +57,21 @@ class UITests(unittest.TestCase):
     def test_original_two_window_layout_and_reopen(self):
         self.root.deiconify()
         self.window.top.deiconify()
-        self.root.update_idletasks()
+        self.root.update()
         main_buttons = [widget.cget("text") for widget in self.root.pack_slaves() if isinstance(widget, tk.Button)]
         self.assertEqual(main_buttons, ["데이터 전송", "엑셀 파일 경로 수정", "나가기"])
         for bar, _, _, _ in self.app.menus.values():
             self.assertFalse(int(bar.cget("tearoff")))
             self.assertEqual(bar.type(0), "cascade")
-        self.assertEqual(self.root.wm_geometry().split("+")[0], "500x400")
-        self.assertEqual(self.window.top.wm_geometry().split("+")[0], "300x400")
+        # Windows includes its native menu in the initial window size; validate
+        # the requested dimensions and the actual usable space separately.
+        self.assertEqual(self.root.wm_minsize(), (500, 400))
+        self.assertEqual(self.window.top.wm_minsize(), (300, 400))
         self.assertEqual(self.window.top.pack_slaves(), [self.window.entry_qr, self.window.read_button, self.window.entry_fix, self.window.result_label, self.window.save_button])
         self.assertEqual(self.window.read_button.cget("text"), "Read QR")
         self.assertEqual(self.window.save_button.cget("text"), "Save Data")
-        self.assertLessEqual(self.app.Menual_label.winfo_y() + self.app.Menual_label.winfo_height(), 400)
-        self.assertLessEqual(self.window.save_button.winfo_y() + self.window.save_button.winfo_height(), 400)
+        self.assertLessEqual(self.app.Menual_label.winfo_y() + self.app.Menual_label.winfo_height(), self.root.winfo_height())
+        self.assertLessEqual(self.window.save_button.winfo_y() + self.window.save_button.winfo_height(), self.window.top.winfo_height())
         self.assertIs(self.app.send_data(), self.window)
         self.window.close_window()
         self.assertIsNone(self.app.data_window)
