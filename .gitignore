@@ -9,6 +9,8 @@ __pycache__/
 build/
 dist/
 source-smoke-report.json
+audit-input/
+audit-output/
 
 # Local donor records and reference-only regression checks
 /*.xlsx

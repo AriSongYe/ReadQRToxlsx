@@ -28,6 +28,11 @@ py -3.12 -m venv .venv-build
 - 2,300행 이후 QR 조회와 5개 항목의 작정금액 확인
 - XLSX 입금 기록·백업·저장·재조회, 다른 ZIP 구성 요소 보존
 - EXE의 Windows PE 및 x64 형식 확인
+- EXE 파일 아이콘과 내부 `icon.ico`가 원본 아이콘과 일치하는지 확인
+- Python·Tk·Pillow·QR 네이티브 모듈과 Tcl/Tk 데이터의 내장 여부 확인
+- EXE만 복사한 별도 한글 경로에서 실행, Python/Tcl 환경 변수 및 Python PATH 제거
+
+검사 보고서의 `standalone_verification`에 실행파일 SHA-256과 각 확인 결과를 기록합니다. `.github/workflows/windows-exe-audit.yml`은 기존 빌드의 EXE를 내려받아 동일한 해시인지 확인한 후 이 독립 실행 검사를 수행하므로, EXE를 다시 빌드하지 않고 이미 전달한 파일도 검증할 수 있습니다.
 
 실제 스캐너 연결과 사용자 PC에서의 화면·Excel 동작은 배포 후 확인해야 합니다. 코드 서명은 포함하지 않습니다.
 

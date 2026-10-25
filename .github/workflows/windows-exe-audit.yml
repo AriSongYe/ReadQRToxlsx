@@ -1,0 +1,51 @@
+name: Audit standalone Windows EXE
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Workflow run containing the EXE artifact
+        default: '40156490442'
+        required: true
+      expected_sha256:
+        description: SHA-256 of the exact EXE to verify
+        default: ed3b4e4e3ca431cda786f1c33ce22f57a3234b9ad344be32a2b2ca311944584a
+        required: true
+  push:
+    branches:
+      - 'codex/standalone-audit-*'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    env:
+      SOURCE_RUN_ID: ${{ inputs.source_run_id || '40156490442' }}
+      EXPECTED_SHA256: ${{ inputs.expected_sha256 || 'ed3b4e4e3ca431cda786f1c33ce22f57a3234b9ad344be32a2b2ca311944584a' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Install verification tools
+        run: python -m pip install -r requirements-build.txt
+      - name: Download the existing executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ($env:SOURCE_RUN_ID -notmatch '^\d+$') { throw 'Invalid run ID' }
+          gh run download $env:SOURCE_RUN_ID --repo $env:GITHUB_REPOSITORY --name ReadQRToxlsx-Windows-x64 --dir audit-input
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Inspect icons and run EXE in isolation
+        run: python scripts/verify_windows.py --executable audit-input/ReadQRToxlsx.exe --expected-sha256 $env:EXPECTED_SHA256 --report audit-output/standalone-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows-EXE-standalone-verification
+          path: audit-output/standalone-report.json
+          if-no-files-found: error
+          retention-days: 14
