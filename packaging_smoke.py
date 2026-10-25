@@ -9,6 +9,7 @@ from zipfile import ZipFile
 
 def run(output_path):
     report = {"ok": False, "checks": []}
+    app = None
     try:
         import tkinter as tk
         import openpyxl
@@ -22,8 +23,8 @@ def run(output_path):
         root.withdraw()
         app = MyApp(root)
         root.update()
-        app._destroy()
-        report["checks"].append("Tk UI initialization")
+        assert [widget.cget("text") for widget in root.pack_slaves() if isinstance(widget, tk.Button)] == ["데이터 전송", "엑셀 파일 경로 수정", "나가기"]
+        report["checks"].append("Original main window layout")
         with tempfile.TemporaryDirectory() as directory:
             directory = Path(directory)
             image_path = directory / "qr.png"
@@ -51,8 +52,21 @@ def run(output_path):
             for category in range(1, 6):
                 item = manager.lookup(f"{category}-7", 2026, day)
                 assert item.row == 2401 and item.pledged == category * 1000
-            item = manager.lookup("1-7", 2026, day)
-            manager.record(item, 3000)
+            app._opened(manager)
+            window = app.send_data()
+            window.top.withdraw()
+            window.auto_var.set(False)
+            window.qr_var.set("1-7")
+            window.read_qr()
+            assert window.current.name == "테스트"
+            assert window.read_button.cget("text") == "Read QR"
+            assert window.save_button.cget("text") == "Save Data"
+            assert window.top.pack_slaves() == [window.entry_qr, window.read_button, window.entry_fix, window.result_label, window.save_button]
+            window.amount_var.set("3000")
+            window.fixMoney()
+            assert manager.lookup("1-7", 2026, day).existing == 3000
+            window.close_window()
+            report["checks"].append("Original separate QR window and amount entry")
             backup = manager.save()
             with ZipFile(backup) as before, ZipFile(workbook_path) as after:
                 changed = {name for name in before.namelist() if before.read(name) != after.read(name)}
@@ -65,5 +79,8 @@ def run(output_path):
         report["ok"] = True
     except Exception:
         report["error"] = traceback.format_exc()
+    finally:
+        if app is not None and not app.closed:
+            app._destroy()
     Path(output_path).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0 if report["ok"] else 1
